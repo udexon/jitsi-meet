@@ -168,10 +168,10 @@ export default class MeetingsList extends Component<Props> {
                 key = { index }
                 onClick = { onPress }>
                 <Container className = 'left-column'>
-                    <Text className = 'date'>
+                    <Text className = 'title'>
                         { _toDateString(date) }
                     </Text>
-                    <Text>
+                    <Text className = 'subtitle'>
                         { _toTimeString(time) }
                     </Text>
                 </Container>
@@ -187,7 +187,7 @@ export default class MeetingsList extends Component<Props> {
                     }
                     {
                         typeof duration === 'number' ? (
-                            <Text>
+                            <Text className = 'subtitle'>
                                 { getLocalizedDurationFormatter(duration) }
                             </Text>) : null
                     }

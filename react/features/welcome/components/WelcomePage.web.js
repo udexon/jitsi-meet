@@ -78,6 +78,17 @@ class WelcomePage extends AbstractWelcomePage {
          */
         this._additionalToolbarContentRef = null;
 
+        this._additionalCardRef = null;
+
+        /**
+         * The template to use as the additional card displayed near the main one.
+         *
+         * @private
+         * @type {HTMLTemplateElement|null}
+         */
+        this._additionalCardTemplate = document.getElementById(
+            'welcome-page-additional-card-template');
+
         /**
          * The template to use as the main content for the welcome page. If
          * not found then only the welcome page head will display.
@@ -102,6 +113,7 @@ class WelcomePage extends AbstractWelcomePage {
         // Bind event handlers so they are only bound once per instance.
         this._onFormSubmit = this._onFormSubmit.bind(this);
         this._onRoomChange = this._onRoomChange.bind(this);
+        this._setAdditionalCardRef = this._setAdditionalCardRef.bind(this);
         this._setAdditionalContentRef
             = this._setAdditionalContentRef.bind(this);
         this._setRoomInputRef = this._setRoomInputRef.bind(this);
@@ -137,6 +149,12 @@ class WelcomePage extends AbstractWelcomePage {
                 this._additionalToolbarContentTemplate.content.cloneNode(true)
             );
         }
+
+        if (this._shouldShowAdditionalCard()) {
+            this._additionalCardRef.appendChild(
+                this._additionalCardTemplate.content.cloneNode(true)
+            );
+        }
     }
 
     /**
@@ -159,10 +177,10 @@ class WelcomePage extends AbstractWelcomePage {
      */
     render() {
         const { _moderatedRoomServiceUrl, t } = this.props;
-        const { APP_NAME, DEFAULT_WELCOME_PAGE_LOGO_URL } = interfaceConfig;
+        const { DEFAULT_WELCOME_PAGE_LOGO_URL } = interfaceConfig;
+        const showAdditionalCard = this._shouldShowAdditionalCard();
         const showAdditionalContent = this._shouldShowAdditionalContent();
         const showAdditionalToolbarContent = this._shouldShowAdditionalToolbarContent();
-        const showResponsiveText = this._shouldShowResponsiveText();
 
         return (
             <div
@@ -172,6 +190,7 @@ class WelcomePage extends AbstractWelcomePage {
                 <div className = 'welcome-watermark'>
                     <Watermarks defaultJitsiLogoURL = { DEFAULT_WELCOME_PAGE_LOGO_URL } />
                 </div>
+
                 <div className = 'header'>
                     <div className = 'welcome-page-settings'>
                         <SettingsButton
@@ -184,64 +203,75 @@ class WelcomePage extends AbstractWelcomePage {
                         }
                     </div>
                     <div className = 'header-image' />
-                    <div className = 'header-text'>
+                    <div className = 'header-container'>
                         <h1 className = 'header-text-title'>
-                            { t('welcomepage.title') }
+                            { t('welcomepage.startJoin') }
                         </h1>
-                        <p className = 'header-text-description'>
-                            { t('welcomepage.appDescription',
-                                { app: APP_NAME }) }
-                        </p>
-                    </div>
-                    <div id = 'enter_room'>
-                        <div className = 'enter-room-input-container'>
-                            <div className = 'enter-room-title'>
-                                { t('welcomepage.enterRoomTitle') }
+                        <span className = 'header-text-subtitle'>
+                            { t('welcomepage.noAccount')}
+                        </span>
+                        <div id = 'enter_room'>
+                            <div className = 'enter-room-input-container'>
+                                <form onSubmit = { this._onFormSubmit }>
+                                    <input
+                                        autoFocus = { true }
+                                        className = 'enter-room-input'
+                                        id = 'enter_room_field'
+                                        onChange = { this._onRoomChange }
+                                        pattern = { ROOM_NAME_VALIDATE_PATTERN_STR }
+                                        placeholder = { this.state.roomPlaceholder }
+                                        ref = { this._setRoomInputRef }
+                                        title = { t('welcomepage.roomNameAllowedChars') }
+                                        type = 'text'
+                                        value = { this.state.room } />
+                                    <div
+                                        className = { _moderatedRoomServiceUrl
+                                            ? 'warning-with-link'
+                                            : 'warning-without-link' }>
+                                        { this._renderInsecureRoomNameWarning() }
+                                    </div>
+                                </form>
                             </div>
-                            <form onSubmit = { this._onFormSubmit }>
-                                <input
-                                    autoFocus = { true }
-                                    className = 'enter-room-input'
-                                    id = 'enter_room_field'
-                                    onChange = { this._onRoomChange }
-                                    pattern = { ROOM_NAME_VALIDATE_PATTERN_STR }
-                                    placeholder = { this.state.roomPlaceholder }
-                                    ref = { this._setRoomInputRef }
-                                    title = { t('welcomepage.roomNameAllowedChars') }
-                                    type = 'text'
-                                    value = { this.state.room } />
-                                { this._renderInsecureRoomNameWarning() }
-                            </form>
+                            <div
+                                className = 'welcome-page-button'
+                                id = 'enter_room_button'
+                                onClick = { this._onFormSubmit }>
+                                { t('welcomepage.startMeeting') }
+                            </div>
                         </div>
-                        <div
-                            className = 'welcome-page-button'
-                            id = 'enter_room_button'
-                            onClick = { this._onFormSubmit }>
-                            {
-                                showResponsiveText
-                                    ? t('welcomepage.goSmall')
-                                    : t('welcomepage.go')
-                            }
-                        </div>
-                    </div>
-                    { _moderatedRoomServiceUrl && (
-                        <div id = 'moderated-meetings'>
-                            <p>
-                                {
-                                    translateToHTML(
+
+                        { _moderatedRoomServiceUrl && (
+                            <div id = 'moderated-meetings'>
+                                <p>
+                                    {
+                                        translateToHTML(
                                         t, 'welcomepage.moderatedMessage', { url: _moderatedRoomServiceUrl })
-                                }
-                            </p>
-                        </div>
-                    ) }
-                    { this._renderTabs() }
+                                    }
+                                </p>
+                            </div>)}
+                    </div>
                 </div>
-                { showAdditionalContent
-                    ? <div
-                        className = 'welcome-page-content'
-                        ref = { this._setAdditionalContentRef } />
-                    : null }
+
+                <div className = 'welcome-cards-container'>
+                    <div className = 'welcome-card-row'>
+                        <div className = 'welcome-card welcome-card--blue'>
+                            { this._renderTabs() }
+                        </div>
+                        { showAdditionalCard
+                            ? <div
+                                className = 'welcome-card welcome-card--yellow'
+                                ref = { this._setAdditionalCardRef } />
+                            : null }
+                    </div>
+
+                    { showAdditionalContent
+                        ? <div
+                            className = 'welcome-page-content'
+                            ref = { this._setAdditionalContentRef } />
+                        : null }
+                </div>
             </div>
+
         );
     }
 
@@ -344,6 +374,19 @@ class WelcomePage extends AbstractWelcomePage {
 
     /**
      * Sets the internal reference to the HTMLDivElement used to hold the
+     * additional card shown near the tabs card.
+     *
+     * @param {HTMLDivElement} el - The HTMLElement for the div that is the root
+     * of the welcome page content.
+     * @private
+     * @returns {void}
+     */
+    _setAdditionalCardRef(el) {
+        this._additionalCardRef = el;
+    }
+
+    /**
+     * Sets the internal reference to the HTMLDivElement used to hold the
      * welcome page content.
      *
      * @param {HTMLDivElement} el - The HTMLElement for the div that is the root
@@ -378,6 +421,19 @@ class WelcomePage extends AbstractWelcomePage {
      */
     _setRoomInputRef(el) {
         this._roomInputRef = el;
+    }
+
+    /**
+     * Returns whether or not an additional card should be displayed near the tabs.
+     *
+     * @private
+     * @returns {boolean}
+     */
+    _shouldShowAdditionalCard() {
+        return interfaceConfig.DISPLAY_WELCOME_PAGE_ADDITIONAL_CARD
+            && this._additionalCardTemplate
+            && this._additionalCardTemplate.content
+            && this._additionalCardTemplate.innerHTML.trim();
     }
 
     /**

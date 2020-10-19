@@ -30,6 +30,46 @@
 }
 
 @media only screen and (max-width: $verySmallScreen) {
+  .welcome {
+      #enter_room {
+        position: relative;
+        height: 42px;
+
+        .welcome-page-button {
+          font-size: 16px;
+          left: 0;
+          position: absolute;
+          top: 68px;
+          text-align: center;
+          width: calc(100% - 38px);
+        }
+      }
+
+      .header {
+          #enter_room {
+              .warning-without-link,
+              .warning-with-link {
+                  top: 110px;
+              }
+          }
+      }
+
+      .header-text-title {
+        text-align: center;
+      }
+
+      .welcome-cards-container {
+        padding: 0;
+      }
+
+      &.without-content {
+        .header {
+          height: 100%;
+        }
+      }
+  }
+
+
     #videoResolutionLabel {
         display: none;
     }
