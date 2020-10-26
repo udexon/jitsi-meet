@@ -177,7 +177,7 @@ const VideoLayout = {
             this.onAudioMute(id, stream.isMuted());
         } else {
             this.onVideoMute(id);
-            remoteVideo.setScreenSharing(stream.videoType === 'desktop');
+            remoteVideo.updateView();
         }
     },
 
@@ -189,7 +189,7 @@ const VideoLayout = {
 
         if (remoteVideo) {
             remoteVideo.removeRemoteStreamElement(stream);
-            remoteVideo.setScreenSharing(false);
+            remoteVideo.updateView();
         }
 
         this.updateMutedForNoTracks(id, stream.getType());
@@ -494,7 +494,7 @@ const VideoLayout = {
         }
 
         logger.info('Peer video type changed: ', id, newVideoType);
-        remoteVideo.setScreenSharing(newVideoType === 'desktop');
+        remoteVideo.updateView();
     },
 
     /**
